@@ -17,6 +17,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     final Environment globals = new Environment();
     private Environment environment = globals;
     private final Map<Expr,Integer> locals = new HashMap<>();
+   // Map<String, LoxFunction> methods = new HashMap<>();
 
 
     Interpreter() {
@@ -372,11 +373,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         int distance = locals.get(expr);
         LoxClass superClass = (LoxClass)environment.getAt(distance,"super");
 
-        LoxInstance receiver = superClass.findMethod(receiver,expr.method.lexeme);
+        LoxInstance receiver = (LoxInstance)environment.getAt(distance - 1,"this");
+        LoxFunction method = superClass.findMethod(receiver,expr.method.lexeme);
+
         if (method == null) {
             throw new RuntimeError(expr.method,"Undefined property" + expr.method.lexeme + ".");
         }
-        return method
+        return method;
     }
 
     @Override
@@ -384,6 +387,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return lookUpVariable(expr.keyword,expr);
     }
 
+    private Object lookUpVariable(Token name, Expr expr) {
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            return environment.getAt(distance,name.lexeme);
+        } else {
+            return globals.get(name);
+        }
+
+    }
 
 
 

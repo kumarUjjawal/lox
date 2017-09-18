@@ -8,10 +8,23 @@ import java.util.List;
 public class LoxFunction  implements LoxCallable{
     private final Stmt.Function declaration;
     private final Environment closure;
+    private boolean isInitializer;
 
     LoxFunction(Stmt.Function declaration,Environment closure) {
         this.closure = closure;
         this.declaration = declaration;
+    }
+
+    LoxFunction(Stmt.Function declaration, Environment closure, boolean isInitializer) {
+        this.declaration = declaration;
+        this.closure = closure;
+        this.isInitializer = isInitializer;
+    }
+
+    LoxFunction bind(LoxInstance self) {
+        Environment environment = new Environment(closure);
+        environment.define("this", self);
+        return new LoxFunction(declaration, environment, isInitializer);
     }
 
     @Override
